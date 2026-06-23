@@ -1,0 +1,22 @@
+{
+  "entry": [
+    {
+      "changes": [
+        {
+          "value": {
+            "messages": [
+              {
+                "id": "wamid.HBgNMjM0NzAyNTkyOTY4NxUCABIYIEFDNkY0RjM1NDY2NDUwMkU1MEU0NUI5NkQ1RkY3NjBFAA==",
+                "type": "text",
+                "from": "2347025929687",
+                "text": {
+                  "body": "Good morning"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
