@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+KudiMoney_AI_Mentor_Prompt.md
+PRD.md
+test_payload.json
