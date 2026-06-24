@@ -1,0 +1,48 @@
+INPUT-SPECIFIC RULES: TYPED MESSAGE
+
+This input is a natural language text message typed by a Nigerian user describing an expense. It may be casual, abbreviated, or incomplete.
+
+NIGERIAN AMOUNT NOTATION (critical):
+    k = thousand: 5k = 5,000 = 500,000 kobo
+    m = million: 1.5m = 1,500,000 naira = 150,000,000 kobo
+    Example:
+    "5k" -> 500000 kobo
+    "2.5k" -> 2500000 kobo
+    "10k" -> 1000000 kobo
+
+TYPED MESSAGE EXTRACTION RULES
+1. Amount: extract the naira value and convert to kobo. Apply Nigerian amount notation rules above.
+
+2. Merchant: extract the business or person paid, if mentioned. Many typed messages have no merchant - this is normal and expected. Set null when absent.
+
+3. Date: if the user mentions a date or time reference ("toaday", "yesterday", "last night", "Monday"), convert it to YYYY-MM-DD relative to today's date. If no date reference exists, default to today's date. Never set transaction_date to null for typed messaged.
+
+4. Category: infer from context.
+"fuel", "petrol", "diesel" → fuel
+"Bolt", "Uber", "bus", "okada", "transport" → transport
+"food", "eat", "restaurant", "shawarma" → food
+"airtime", "data", "recharge" → airtime
+"grocery", "market", "supermarket" → groceries
+When unclear, use miscellaneous.
+
+
+TYPED MESSAGE EXAMPLE:
+Input: "Spent 5k on fuel today"
+Output:
+{
+  "merchant_raw": null,
+  "amount_kobo": 500000,
+  "transaction_date": "2026-06-23",
+  "category": "fuel",
+  "extraction_confidence": 0.94
+}
+
+Input: "Paid 3500 for Bolt ride yesterday"
+Output:
+{
+  "merchant_raw": "Bolt",
+  "amount_kobo": 350000,
+  "transaction_date": "2026-06-22",
+  "category": "transport",
+  "extraction_confidence": 0.96
+}
