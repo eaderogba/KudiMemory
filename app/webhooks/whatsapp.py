@@ -1,14 +1,15 @@
 # app/webhooks/whatsapp.py
 
+import os
+# import requests
 import hmac
 import hashlib
 import json
-from fastapi import APIRouter, Request, HTTPException, Query, Depends
+from fastapi import APIRouter, Request, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 from app.config import config
-from app.db.database import get_db
-from app.db.models.processed_message import ProcessedMessage
-from sqlalchemy.orm import Session
+from starlette.requests import ClientDisconnect
+from app.workers.process_message import process_message
 
 router = APIRouter()
 
@@ -64,13 +65,14 @@ def extract_messages(payload: dict) -> list[dict]:
                 
     return extracted_messages
 
-
 @router.post("/webhook")
 async def receive_webhook(
-    request: Request,
-    db: Session = Depends(get_db)
-):
-    raw_body = await request.body()
+    request: Request):
+    try:
+        raw_body = await request.body()
+    except ClientDisconnect:
+        return PlainTextResponse(content="OK")
+    
     signature_header = request.headers.get("X-Hub-Signature-256")
 
     if not verify_signature(raw_body, signature_header):
@@ -78,36 +80,8 @@ async def receive_webhook(
 
     payload = json.loads(raw_body)
     messages = extract_messages(payload)
-
+    
     for message in messages:
-        message_id = message.get("id")
-        message_type = message.get("type")
-        from_number = message.get("from")
-
-        if not message_id:
-            continue
-
-        # Deduplication check
-        existing = db.query(ProcessedMessage)\
-                     .filter(ProcessedMessage.message_id == message_id)\
-                     .first()
-
-        if existing:
-            print(f"Duplicate message {message_id}, skipping")
-            continue
-
-        # Record message_id immediately — before type filtering
-        # This ensures retries are caught even for non-text messages
-        processed = ProcessedMessage(message_id=message_id)
-        db.add(processed)
-        db.commit()
-
-        # Phase 1: text only
-        if message_type != "text":
-            print(f"Ignoring non-text message type: {message_type}")
-            continue
-
-        text_body = message.get("text", {}).get("body")
-        print(f"New message from {from_number}: {text_body}")
-
+        process_message.delay(message)
+            
     return PlainTextResponse(content="OK")

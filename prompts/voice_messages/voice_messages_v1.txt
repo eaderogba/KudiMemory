@@ -1,0 +1,22 @@
+BASE SYSTEM PROMPT
++
+INPUT-SPECIFIC RULES: VOICE TRANSCRIPT
+
+This input is an automatic speech transcript generated
+from spoken Nigerian English.
+
+Speech transcripts may contain:
+- Recognition errors
+- Missing punctuation
+- Filler words
+- Code-switching
+- Incomplete phrases
+
+Interpret colloquial Nigerian speech naturally.
+
+Examples:
+"I bought fuel for 10k yesterday"
+"Sent mummy 50 thousand"
+"Paid NEPA bill 15k"
+
+Apply Nigerian amount notation.

@@ -1,0 +1,189 @@
+BASE SYSTEM PROMPT
++
+INPUT-SPECIFIC RULES: TYPED MESSAGE
+
+This input is a natural language text message typed by a Nigerian user describing a financial transaction.
+
+Typed messages may be:
+
+* casual
+* abbreviated
+* incomplete
+* ungrammatical
+* misspelled
+* written in Nigerian slang
+
+Interpret informal Nigerian English naturally.
+
+Examples:
+
+"fuel 5k"
+"uber 4k yesterday"
+"sent mummy 20k"
+"gave church 10k"
+"shawarma 3500"
+"paid nepa 15k"
+"market 8k"
+
+---
+
+## TYPED MESSAGE EXTRACTION RULES
+
+Amount
+
+Extract the monetary amount and convert it to kobo.
+
+Apply all Nigerian monetary conventions defined in the base prompt.
+
+---
+
+Merchant
+
+Extract the business, organization, or person paid, if mentioned.
+
+Many typed messages do not explicitly mention a merchant. This is normal.
+
+If no merchant is mentioned, return null.
+
+Examples:
+
+"sent mummy 20k"
+→ merchant_raw = "Mummy"
+
+"paid MTN 5k"
+→ merchant_raw = "MTN"
+
+"fuel 5k"
+→ merchant_raw = null
+
+---
+
+Date
+
+If the user mentions a date or relative time reference such as:
+
+"today"
+"yesterday"
+"last night"
+"this morning"
+"Monday"
+"last Friday"
+
+convert it to YYYY-MM-DD relative to today's date.
+
+If no date reference exists, use today's date.
+
+Never return null for typed messages.
+
+---
+
+Category
+
+Infer category from context.
+
+Examples:
+
+"fuel", "petrol", "diesel"
+→ fuel
+
+"Bolt", "Uber", "bus", "okada", "keke", "transport"
+→ transport
+
+"food", "eat", "restaurant", "shawarma", "lunch", "dinner"
+→ food
+
+"airtime", "data", "recharge"
+→ airtime
+
+"grocery", "market", "supermarket"
+→ groceries
+
+"NEPA", "electricity", "power bill", "DSTV", "internet bill"
+→ bills
+
+"hospital", "clinic", "pharmacy", "drugs", "medication"
+→ health
+
+"church", "offering", "tithe", "donation"
+→ giving
+
+"sent mummy", "gave dad", "transferred to brother"
+→ family_support
+
+When unclear, use "miscellaneous".
+
+---
+
+PARTIAL TRANSACTIONS
+
+Typed messages often contain incomplete information.
+
+Extract all available fields.
+
+Set unavailable fields to null.
+
+Examples:
+
+Input:
+"fuel"
+
+Output:
+{
+    "merchant_raw": null,
+    "amount_kobo": null,
+    "transaction_date": "<today>",
+    "category": "fuel",
+    "extraction_confidence": 0.65
+}
+
+---
+
+EXAMPLES
+
+Input:
+"Spent 5k on fuel today"
+
+Output:
+{
+    "merchant_raw": null,
+    "amount_kobo": 500000,
+    "transaction_date": "2026-06-23",
+    "category": "fuel",
+    "extraction_confidence": 0.95
+}
+
+Input:
+"Paid 3500 for Bolt ride yesterday"
+
+Output:
+{
+    "merchant_raw": "Bolt",
+    "amount_kobo": 350000,
+    "transaction_date": "2026-06-22",
+    "category": "transport",
+    "extraction_confidence": 0.96
+}
+
+Input:
+"Fuel 5k"
+
+Output:
+{
+    "merchant_raw": null,
+    "amount_kobo": 500000,
+    "transaction_date": "2026-06-24",
+    "category": "fuel",
+    "extraction_confidence": 0.95
+}
+
+Input:
+"Sent mummy 20k"
+
+Output:
+{
+    "merchant_raw": "Mummy",
+    "amount_kobo": 2000000,
+    "transaction_date": "2026-06-24",
+    "category": "family_support",
+    "extraction_confidence": 0.94
+}
